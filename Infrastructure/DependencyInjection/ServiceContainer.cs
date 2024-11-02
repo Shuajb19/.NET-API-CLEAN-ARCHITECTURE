@@ -1,4 +1,5 @@
 ﻿using Application.Contracts;
+using Application.Handlers;
 using Infrastructure.Data;
 using Infrastructure.Repo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -38,7 +39,11 @@ namespace Infrastructure.DependencyInjection
                 };
             });
 
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<CreditAccountHandler>();
             services.AddScoped<IUser, UserRepo>();
+            services.AddControllers();
 
             return services;
         }
