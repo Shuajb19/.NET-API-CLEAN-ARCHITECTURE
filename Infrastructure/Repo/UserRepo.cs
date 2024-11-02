@@ -67,18 +67,31 @@ namespace Infrastructure.Repo
             var getUser = await FindUserByEmail(registerUserDTO.Email!);
             if (getUser != null)
             {
-                return new RegistrationResponse(false, "User already exist");
+                return new RegistrationResponse(false, "User already exists");
             }
 
-            appDbContext.Users.Add(new ApplicationUser()
+            var newUser = new ApplicationUser()
             {
                 Name = registerUserDTO.Name,
                 Email = registerUserDTO.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(registerUserDTO.Password)
-            });
-            await appDbContext.SaveChangesAsync();
-            return new RegistrationResponse(true, "Registration completed");
+            };
 
+            appDbContext.Users.Add(newUser);
+            await appDbContext.SaveChangesAsync();
+
+           
+            var newAccount = new Account()
+            {
+                UserId = newUser.Id,
+                Balance = 0,
+            };
+
+            appDbContext.Accounts.Add(newAccount);
+            await appDbContext.SaveChangesAsync();
+
+            return new RegistrationResponse(true, "Registration completed");
         }
+
     }
 }
