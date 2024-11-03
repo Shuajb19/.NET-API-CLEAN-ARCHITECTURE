@@ -1,6 +1,7 @@
 ﻿using Application.Commands;
 using Application.Dto;
 using Application.Handlers;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,10 +13,20 @@ namespace WebApi.Controllers
     public class AccountController : ControllerBase
     {
         private readonly CreditAccountHandler _creditAccountHandler;
+        private readonly IMediator _mediator;
 
-        public AccountController(CreditAccountHandler creditAccountHandler)
+        public AccountController(CreditAccountHandler creditAccountHandler, IMediator mediator)
         {
             _creditAccountHandler = creditAccountHandler;
+            _mediator = mediator;
+        }
+
+        [HttpGet("balance")]
+        public async Task<IActionResult> GetAccountBalance()
+        {
+            var userId = GetCurrentUserId(); // Helper method to get the current user's ID
+            var balance = await _mediator.Send(new GetAccountBalanceQuery(userId));
+            return Ok(new { Balance = balance });
         }
 
         [HttpPost("credit")]
