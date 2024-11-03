@@ -12,5 +12,7 @@ namespace Application.Contracts
         Task<Account> GetByIdAsync(int id);
         Task<Account> GetByUserIdAsync(int userId); // Fetch by user ID
         Task UpdateAsync(Account account);
+
+        Task<Account> GetAccountByUserIdAsync(int userId);
     }
 }

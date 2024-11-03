@@ -34,5 +34,10 @@ namespace Infrastructure.Repo
             _context.Accounts.Update(account);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<Account> GetAccountByUserIdAsync(int userId)
+        {
+            return await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
+        }
     }
 }
