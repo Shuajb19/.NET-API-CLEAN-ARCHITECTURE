@@ -39,15 +39,18 @@ namespace Infrastructure.Repo
                 return new LoginResponse(false, "Invalid credetials");
         }
 
+
         private string GenerateJWTToken(ApplicationUser user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var account = appDbContext.Accounts.FirstOrDefaultAsync(a => a.UserId == user.Id);
             var userClaims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Name!),
-                new Claim(ClaimTypes.Email, user.Email!)
+                new Claim(ClaimTypes.Email, user.Email!),
+                new Claim("AccountId", account.Id.ToString())
             };
             var token = new JwtSecurityToken(
                 issuer: configuration["Jwt:Issuer"],
