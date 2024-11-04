@@ -1,43 +1,45 @@
 ﻿using Application.Commands;
 using Application.Contracts;
-using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Application.Handlers
+public class CreditAccountHandler
 {
-    public class CreditAccountHandler
+    private readonly IAccountRepository _accountRepository;
+
+    public CreditAccountHandler(IAccountRepository accountRepository)
     {
-        private readonly IAccountRepository _accountRepository;
-        private readonly ITransactionRepository _transactionRepository;
-
-        public CreditAccountHandler(IAccountRepository accountRepository, ITransactionRepository transactionRepository)
-        {
-            _accountRepository = accountRepository;
-            _transactionRepository = transactionRepository;
-        }
-
-        public async Task Handle(CreditAccountCommand command)
-        {
-            var account = await _accountRepository.GetByUserIdAsync(command.UserId);
-            if (account == null) throw new Exception("Account not found.");
-
-            account.Balance += command.CreditAccountDto.Amount;
-
-            var transaction = new Transaction
-            {
-                Amount = command.CreditAccountDto.Amount,
-                Date = DateTime.UtcNow,
-                Description = "Credit operation",
-                AccountId = account.Id
-            };
-
-            await _accountRepository.UpdateAsync(account);
-            await _transactionRepository.AddAsync(transaction);
-        }
+        _accountRepository = accountRepository;
     }
 
+    public async Task Handle(CreditAccountCommand command)
+    {
+        var account = await _accountRepository.GetByUserIdAsync(command.UserId);
+
+        if (account == null)
+        {
+            throw new InvalidOperationException("Account not found for the given user.");
+        }
+
+        // Check transaction type and apply logic accordingly
+        if (command.CreditAccountDto.TransactionType.Equals("Credit", StringComparison.OrdinalIgnoreCase))
+        {
+            account.Balance += command.CreditAccountDto.Amount; // Add amount for credit
+        }
+        else if (command.CreditAccountDto.TransactionType.Equals("Debit", StringComparison.OrdinalIgnoreCase))
+        {
+            if (account.Balance >= command.CreditAccountDto.Amount)
+            {
+                account.Balance -= command.CreditAccountDto.Amount; // Subtract amount for debit
+            }
+            else
+            {
+                throw new InvalidOperationException("Insufficient funds for debit transaction.");
+            }
+        }
+        else
+        {
+            throw new ArgumentException("Invalid transaction type. Use 'Credit' or 'Debit'.");
+        }
+
+        await _accountRepository.UpdateAsync(account);
+    }
 }

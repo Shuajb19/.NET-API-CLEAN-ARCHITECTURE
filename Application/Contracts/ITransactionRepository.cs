@@ -10,5 +10,6 @@ namespace Application.Contracts
     public interface ITransactionRepository
     {
         Task AddAsync(Transaction transaction);
+        Task<List<Transaction>> GetTransactionsByAccountIdAsync(int accountId);
     }
 }

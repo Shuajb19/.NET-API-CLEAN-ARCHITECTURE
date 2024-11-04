@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.Dto
 {
-    public class CreditAccountDto
+    public class TransactionDto
     {
-        [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero.")]
+        public int TransactionId { get; set; }
         public decimal Amount { get; set; }
         public string TransactionType { get; set; }
+        public DateTime TransactionDate { get; set; }
     }
+
 }

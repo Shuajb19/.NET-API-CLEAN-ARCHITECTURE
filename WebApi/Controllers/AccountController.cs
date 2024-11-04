@@ -43,6 +43,14 @@ namespace WebApi.Controllers
             return Ok();
         }
 
+        [HttpGet("transactions")]
+        public async Task<IActionResult> GetTransactionHistory()
+        {
+            var accountId = GetCurrentAccountId();
+            var transactions = await _mediator.Send(new GetTransactionHistoryByAccountQuery(accountId));
+            return Ok(transactions);
+        }
+
         private int GetCurrentUserId()
         {
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
@@ -55,6 +63,25 @@ namespace WebApi.Controllers
             if (int.TryParse(userIdClaim.Value, out int userId))
             {
                 return userId;
+            }
+            else
+            {
+                throw new Exception("Invalid User ID claim value.");
+            }
+        }
+
+        private int GetCurrentAccountId()
+        {
+            var accountIdClaim = User.Claims.FirstOrDefault(c => c.Type == "AccountId");
+
+            if (accountIdClaim == null)
+            {
+                throw new Exception("User ID claim not found.");
+            }
+
+            if (int.TryParse(accountIdClaim.Value, out int accountId))
+            {
+                return accountId;
             }
             else
             {
