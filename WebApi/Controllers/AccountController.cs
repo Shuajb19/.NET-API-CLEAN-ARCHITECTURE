@@ -1,9 +1,11 @@
 ﻿using Application.Commands;
 using Application.Dto;
 using Application.Handlers;
+using Infrastructure.Data;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 using System.Security.Claims;
 
 namespace WebApi.Controllers
@@ -14,6 +16,7 @@ namespace WebApi.Controllers
     {
         private readonly CreditAccountHandler _creditAccountHandler;
         private readonly IMediator _mediator;
+        private readonly AppDbContext _appDbcontext;
 
         public AccountController(CreditAccountHandler creditAccountHandler, IMediator mediator)
         {
@@ -33,10 +36,18 @@ namespace WebApi.Controllers
         public async Task<IActionResult> CreditAccount([FromBody] CreditAccountDto creditAccountDto)
         {
             var userId = GetCurrentUserId(); // Extract user ID
+            var accountId = GetCurrentAccountId();
             var command = new CreditAccountCommand
             {
-                UserId = userId,
-                CreditAccountDto = creditAccountDto // Populate DTO
+                UserId = GetCurrentUserId(), // Extract user ID as you did before
+                CreditAccountDto = new CreditAccountDto
+                {
+                    AccountId = accountId, // Set the AccountId from claims
+                    Amount = creditAccountDto.Amount,
+                    TransactionDate = creditAccountDto.TransactionDate,
+                    TransactionType = creditAccountDto.TransactionType,
+                    Description = creditAccountDto.Description
+                }
             };
 
             await _creditAccountHandler.Handle(command);
@@ -76,7 +87,7 @@ namespace WebApi.Controllers
 
             if (accountIdClaim == null)
             {
-                throw new Exception("User ID claim not found.");
+                throw new Exception("Account ID claim not found.");
             }
 
             if (int.TryParse(accountIdClaim.Value, out int accountId))
@@ -85,7 +96,7 @@ namespace WebApi.Controllers
             }
             else
             {
-                throw new Exception("Invalid User ID claim value.");
+                throw new Exception("Invalid Account ID claim value.");
             }
         }
 

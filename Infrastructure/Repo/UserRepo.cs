@@ -34,17 +34,17 @@ namespace Infrastructure.Repo
             bool checkPassword = BCrypt.Net.BCrypt.Verify(loginDTO.Password, getUser.Password);
 
             if (checkPassword)
-                return new LoginResponse(true, "Login successfully", GenerateJWTToken(getUser));
+                return new LoginResponse(true, "Login successfully", await GenerateJWTToken(getUser));
             else
                 return new LoginResponse(false, "Invalid credetials");
         }
 
 
-        private string GenerateJWTToken(ApplicationUser user)
+        private async Task<string> GenerateJWTToken(ApplicationUser user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var account = appDbContext.Accounts.FirstOrDefaultAsync(a => a.UserId == user.Id);
+            var account = await appDbContext.Accounts.FirstOrDefaultAsync(a => a.UserId == user.Id);
             var userClaims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),

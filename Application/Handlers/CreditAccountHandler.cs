@@ -1,13 +1,16 @@
 ﻿using Application.Commands;
 using Application.Contracts;
+using Domain.Entities;
 
 public class CreditAccountHandler
 {
     private readonly IAccountRepository _accountRepository;
+    private readonly ITransactionRepository _transactionRepository;
 
-    public CreditAccountHandler(IAccountRepository accountRepository)
+    public CreditAccountHandler(IAccountRepository accountRepository, ITransactionRepository transactionRepository)
     {
         _accountRepository = accountRepository;
+        _transactionRepository = transactionRepository;
     }
 
     public async Task Handle(CreditAccountCommand command)
@@ -18,6 +21,15 @@ public class CreditAccountHandler
         {
             throw new InvalidOperationException("Account not found for the given user.");
         }
+
+        var transaction = new Transaction
+        {
+            AccountId = account.Id,
+            Amount = command.CreditAccountDto.Amount,
+            Date = command.CreditAccountDto.TransactionDate,
+            TransactionType = command.CreditAccountDto.TransactionType,
+            Description = command.CreditAccountDto.Description
+        };
 
         // Check transaction type and apply logic accordingly
         if (command.CreditAccountDto.TransactionType.Equals("Credit", StringComparison.OrdinalIgnoreCase))
@@ -40,6 +52,7 @@ public class CreditAccountHandler
             throw new ArgumentException("Invalid transaction type. Use 'Credit' or 'Debit'.");
         }
 
+        await _transactionRepository.AddAsync(transaction);
         await _accountRepository.UpdateAsync(account);
     }
 }

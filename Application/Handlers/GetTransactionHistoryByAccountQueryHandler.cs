@@ -24,15 +24,16 @@ namespace Application.Handlers
 
             if (transactions == null || !transactions.Any())
             {
-                throw new Exception("No transactions found for the specified account.");
+                return new List<TransactionDto>();
             }
 
             return transactions.Select(t => new TransactionDto
             {
-                TransactionId = t.Id,
+                Id = t.Id,
                 Amount = t.Amount,
                 TransactionType = t.TransactionType,
-                TransactionDate = t.Date
+                Description = t.Description,
+                Date = t.Date
             }).ToList();
         }
     }
